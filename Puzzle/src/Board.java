@@ -63,8 +63,8 @@ public class Board implements Ilayout, Cloneable {
 
     /**
      * This method returns true if two boards are equal and false otherwise
-     * @param o
-     * @return
+     * @param o represents the board to be compared
+     * @return Arrays.deepEquals(this.Board, board1.getBoard())
      */
     @Override
     public boolean equals(Object o) {
@@ -73,22 +73,37 @@ public class Board implements Ilayout, Cloneable {
         Board board1 = (Board) o;
         return Arrays.deepEquals(this.board, board1.getBoard());
     }
+
+    /**
+     * This method returns a clone of the receiver, encapsulation purposes
+     * @return new Board(this)
+     */
     @Override
     public Board clone()
     {
         return new Board(this);
     }
+
+    /**
+     * This method returns a hashcode of the Board
+     * @return Arrays.hashCode(campos)
+     */
     @Override
     public int hashCode() {
         Object[] campos = {Board.dim,this.board};
         return Arrays.hashCode(campos);
     }
 
+    /**
+     * This method returns all the possible configurations from a start configuration
+     * moving the blank space up down left right and saving the configurations into the data
+     * structure List<Ilayout> children
+     * @return children
+     */
     @Override
     public List<Ilayout> children() {
         List<Ilayout> children = new ArrayList<>();
 
-        // Position of the blank space (0)
         int blankRow = -1, blankCol = -1;
         for (int i = 0; i < dim; i++) {
             for (int j = 0; j < dim; j++) {
@@ -99,40 +114,38 @@ public class Board implements Ilayout, Cloneable {
                 }
             }
         }
-
-        // All possible moves (up, down, left, right)
         int[][] moves = {
-                { -1, 0 }, // Up
-                { 1, 0 },  // Down
-                { 0, -1 }, // Left
-                { 0, 1 }   // Right
+                { -1, 0 },
+                { 1, 0 },
+                { 0, -1 },
+                { 0, 1 }
         };
-
-        // Trying all possible moves
         for (int[] move : moves) {
             int newRow = blankRow + move[0];
             int newCol = blankCol + move[1];
 
-            // Check if the new position is within bounds
             if (newRow >= 0 && newRow < dim && newCol >= 0 && newCol < dim) {
-                Board newBoard = this.clone(); // Clone the current board
-                // Swap the blank space with the new position
-                newBoard.board[blankRow][blankCol] = newBoard.board[newRow][newCol];
-                newBoard.board[newRow][newCol] = 0;
-                children.add(newBoard); // Add the new board configuration to the list
+                Board newBoard = this.clone();
+                // Swaping the blank space with the new position
+                newBoard.getBoard()[blankRow][blankCol] = newBoard.getBoard()[newRow][newCol];
+                newBoard.getBoard()[newRow][newCol] = 0;
+                children.add(newBoard);
             }
         }
-
         return children;
     }
 
-
+    /**
+     * This method asserts the equality of a receiver board configuration with a board l
+     * configuration
+     * @param l is the goal configuration
+     * @return true or false
+     */
     @Override
     public boolean isGoal(Ilayout l) {
         if (!(l instanceof Board goalBoard)) {
             return false;
         }
-        // Check if the current board matches the goal board
         for (int i = 0; i < dim; i++) {
             for (int j = 0; j < dim; j++) {
                 if (this.board[i][j] != goalBoard.getBoard()[i][j]) {
@@ -142,7 +155,11 @@ public class Board implements Ilayout, Cloneable {
         }
         return true;
     }
-    
+
+    /**
+     * returns the cost
+     * @return 1.0
+     */
     @Override
     public double getK() {
         return 1.0;
