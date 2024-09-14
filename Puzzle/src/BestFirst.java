@@ -36,9 +36,9 @@ public class BestFirst {
          * Construtor de cópia
          */
         public State(State s){
-            this.setLayout(s.getLayout());
-            this.setFather(s.getFather());
-            this.setG(s.getG());
+            setLayout(s.getLayout());
+            setFather(s.getFather());
+            setG(s.getG());
         }
 
         /**
@@ -67,7 +67,7 @@ public class BestFirst {
         public State getFather() {
             return this.father;
         }
-
+        @Override
         public int hashCode() {
             return toString().hashCode();
         }
@@ -75,7 +75,7 @@ public class BestFirst {
          * @param obj serve para verificar se o objeto passado como parametro é ou não igual ao objeto recetor
          * @return true ou false caso seja ou não seja igual
          */
-
+        @Override
         public boolean equals(Object obj) {
             if (obj == null) return false;
             if (this.getClass() != obj.getClass()) return false;
@@ -86,7 +86,7 @@ public class BestFirst {
          * Este método tem o principal objetivo de retornar um clone de uma instancia para não partilharem
          * os mesmos endereços e assim não correr o risco de caso uma instancia seja alterada a outra também o seja
          */
-
+        @Override
         public State clone()
         {
             return new State(this);
@@ -95,6 +95,7 @@ public class BestFirst {
         /**
          * Este método tem o principal objetivo de retornar a representação textual do objeto State.
          */
+        @Override
         public String toString() {
             return this.layout.toString();
         }

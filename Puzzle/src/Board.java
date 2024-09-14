@@ -45,6 +45,7 @@ public class Board implements Ilayout, Cloneable {
     /**
      * This method returns the textual representation of the class Board
      */
+    @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         int count = 0;
