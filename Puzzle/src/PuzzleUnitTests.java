@@ -3,8 +3,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.List;
-
-import static java.lang.System.out;
 import static org.junit.Assert.*;
 public class PuzzleUnitTests {
     /**
@@ -105,7 +103,7 @@ public class PuzzleUnitTests {
         try {
             java.lang.reflect.Method method = BestFirst.class.getDeclaredMethod("sucessores", BestFirst.State.class);
             method.setAccessible(true);
-
+            @SuppressWarnings("unchecked")
             List<BestFirst.State> successors = (List<BestFirst.State>) method.invoke(bfs, state);
 
             assertNotNull("Successors should not be null", successors);
@@ -136,7 +134,7 @@ public class PuzzleUnitTests {
         try {
             java.lang.reflect.Method method = BestFirst.class.getDeclaredMethod("reconstructPath", BestFirst.State.class);
             method.setAccessible(true);
-
+            @SuppressWarnings("unchecked")
             Iterator<BestFirst.State> path = (Iterator<BestFirst.State>) method.invoke(bfs, state3);
 
             assertTrue("Path should contain states", path.hasNext());
@@ -205,7 +203,7 @@ public class PuzzleUnitTests {
     public void testEqualsTrue() {
         Board b1 = new Board("123456780");
         Board b2 = new Board("123456780");
-        assertTrue(b1.equals(b2));
+        assertEquals(b1, b2);
     }
 
     /**
@@ -215,7 +213,7 @@ public class PuzzleUnitTests {
     public void testEqualsFalse() {
         Board b1 = new Board("123456780");
         Board b2 = new Board("876543210");
-        assertFalse(b1.equals(b2));
+        assertNotEquals(b1, b2);
     }
 
     /**
@@ -253,19 +251,15 @@ public class PuzzleUnitTests {
 
         Board firstChild = (Board) children.getFirst();
         assertEquals("1 3\n425\n678\n", firstChild.toString());
-        out.println(firstChild);
 
         Board secondChild = (Board) children.get(1);
         assertEquals("123\n475\n6 8\n", secondChild.toString());
-        out.println(secondChild);
 
         Board thirdChild = (Board) children.get(2);
         assertEquals("123\n 45\n678\n", thirdChild.toString());
-        out.println(thirdChild);
 
         Board fourthChild = (Board) children.get(3);
         assertEquals("123\n45 \n678\n", fourthChild.toString());
-        out.println(fourthChild);
     }
 
     /**
