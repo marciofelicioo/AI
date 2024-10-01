@@ -7,8 +7,8 @@ public class Main {
     public static void main (String [] args) throws Exception {
         Scanner sc = new Scanner(System.in);
         BestFirst s = new BestFirst();
-        Iterator<BestFirst.State> it = s.solve(new ContainerOrganizer(sc.nextLine(),true),
-                new ContainerOrganizer(sc.nextLine(),false));
+        Iterator<BestFirst.State> it = s.solve(new ContainersConfiguration(sc.nextLine(),true),
+                new ContainersConfiguration(sc.nextLine(),false));
         if (it==null) out.println("no solution found");
         else {
             while(it.hasNext()) {
