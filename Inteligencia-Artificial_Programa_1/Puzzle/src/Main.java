@@ -7,8 +7,12 @@ public class Main {
     public static void main (String [] args) throws Exception {
         Scanner sc = new Scanner(System.in);
         BestFirst s = new BestFirst();
-        Iterator<BestFirst.State> it = s.solve(new ContainersConfiguration(sc.nextLine(),true),
-                new ContainersConfiguration(sc.nextLine(),false));
+        String firstConfiguration = sc.nextLine();
+        String secondConfiguration = sc.nextLine();
+        //out.println(firstConfiguration + " " + secondConfiguration);
+        ContainersConfiguration containerConfiguration1 = new ContainersConfiguration(firstConfiguration,true);
+        ContainersConfiguration containersConfiguration2 = new ContainersConfiguration(secondConfiguration,false);
+        Iterator<BestFirst.State> it = s.solve(containerConfiguration1, containersConfiguration2);
         if (it==null) out.println("no solution found");
         else {
             while(it.hasNext()) {

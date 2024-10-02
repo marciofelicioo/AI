@@ -74,7 +74,10 @@ public class BestFirst {
         State initialConfiguration = new State(initial, null);
         this.abertos = new PriorityQueue<>(10, (s1, s2) -> Double.compare(s1.getG(), s2.getG()));
         this.fechados = new HashSet<>();
+        Set<Ilayout> abertosSet = new HashSet<>();
+
         this.abertos.add(initialConfiguration);
+        abertosSet.add(initialConfiguration.getLayout());
 
         while (!this.abertos.isEmpty()) {
             this.actual = this.abertos.poll();
@@ -87,11 +90,12 @@ public class BestFirst {
             this.fechados.add(this.actual.getLayout());
 
             for (State sucessor : sucs) {
-                if (!fechados.contains(sucessor.getLayout())) {
+                if (!fechados.contains(sucessor.getLayout()) && !abertosSet.contains(sucessor.getLayout())) {
                     if (sucessor.getLayout().isGoal(this.objective)) {
                         return reconstructPath(sucessor);
                     }
                     this.abertos.add(sucessor);
+                    abertosSet.add(sucessor.getLayout());
                 }
             }
         }

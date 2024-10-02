@@ -4,13 +4,13 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     /**
      * Estrutura estática da classe ContainerOrganizer
      */
-    public static final Comparator<Deque<Container>> compareChars = (s1, s2) ->
-            Character.compare(s1.peek().getId(), s2.peek().getId());
+    public static final Comparator<Stack<Container>> compareChars = (s1,s2) -> String.valueOf(
+            s1.firstElement().getId()).compareTo(String.valueOf(s2.firstElement().getId()));
 
     /**
      * Estrutura da classe ContainerOrganizer
      */
-    private List<Deque<Container>> stacks;
+    private List<Stack<Container>> stacks;
     private double cost;
 
 
@@ -37,8 +37,8 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     public ContainersConfiguration(ContainersConfiguration other) {
         stacks = new ArrayList<>();
 
-        for (Deque<Container> stack : other.stacks) {
-            Deque<Container> newStack = new ArrayDeque<>();
+        for (Stack<Container> stack : other.stacks) {
+            Stack<Container> newStack = new Stack<>();
 
             for (Container container : stack) {
                 newStack.push(new Container(container));
@@ -50,7 +50,7 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     private void parseInput(String config, boolean isInitialState) {
         String[] stacksConfig = config.split(" ");
         for (String stackStr : stacksConfig) {
-            Deque<Container> stack = new ArrayDeque<>();
+            Stack<Container> stack = new Stack<>();
             for (int i = 0; i < stackStr.length(); i++) {
                 char containerId = stackStr.charAt(i);
 
@@ -67,7 +67,10 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
             stacks.add(stack);
         }
     }
-
+    public List<Stack<Container>> getStacks()
+    {
+        return stacks;
+    }
 
     @SuppressWarnings("unchecked")
     public void setStacks(List<Stack<Container>> ss)
@@ -75,7 +78,7 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
         stacks = new ArrayList<>();
         for(Stack<Container> s: ss)
         {
-            stacks.add((Deque<Container>)s.clone());
+            stacks.add((Stack<Container>)s.clone());
         }
     }
 
@@ -85,7 +88,7 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     }
 
     private void removeEmptyStacks() {
-        stacks.removeIf(Deque::isEmpty);
+        stacks.removeIf(Stack::isEmpty);
     }
 
     @Override
@@ -97,25 +100,27 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     @Override
     @SuppressWarnings("unchecked")
     public ContainersConfiguration clone() {
+        List<Stack<Container>> stacksLocal = getStacks();
         ContainersConfiguration copy = new ContainersConfiguration();
-        copy.setStacks(new ArrayList<>(stacks.size()));
-        for (Deque<Container> stack : stacks) {
-            copy.stacks.add(new ArrayDeque<>(stack));
+        copy.setStacks(new ArrayList<>(stacksLocal.size()));
+        for (Stack<Container> stack : stacksLocal) {
+            copy.getStacks().add((Stack<Container>) stack.clone());
         }
         copy.setCost(getK());
         return copy;
     }
 
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        List<Deque<Container>> sortedStacks = getSortedStacks();
-        for (Deque<Container> stack : sortedStacks) {
+
+        List<Stack<Container>> sortedStacks = getSortedStacks();
+
+        for (Stack<Container> stack : sortedStacks) {
             sb.append("[");
-            for (Iterator<Container> it = stack.iterator(); it.hasNext(); ) {
-                sb.append(it.next());
-                if (it.hasNext()) {
+            for (int i = 0; i < stack.size(); i++) {
+                sb.append(stack.get(i).toString());
+                if (i < stack.size() - 1) {
                     sb.append(", ");
                 }
             }
@@ -124,13 +129,12 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
         return sb.toString();
     }
 
-
     @Override
     public List<Ilayout> children() {
         List<Ilayout> children = new ArrayList<>();
-
-        for (int i = 0; i < stacks.size(); i++) {
-            if (!stacks.get(i).isEmpty()) {
+        List<Stack<Container>> stacksLocal = getStacks();
+        for (int i = 0; i < stacksLocal.size(); i++) {
+            if (!getStacks().get(i).isEmpty()) {
                 ContainersConfiguration newConfiguration;
 
                 newConfiguration = this.clone();
@@ -140,7 +144,7 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
                     children.add(newConfiguration);
                 }
 
-                for (int j = 0; j < stacks.size(); j++) {
+                for (int j = 0; j < stacksLocal.size(); j++) {
                     if (i != j) {
                         newConfiguration = this.clone();
                         newConfiguration.moveToStack(i, j);
@@ -173,62 +177,57 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
 
         ContainersConfiguration other = (ContainersConfiguration) o;
 
-        List<Deque<Container>> sortedThisStacks = this.getSortedStacks();
-        List<Deque<Container>> sortedOtherStacks = other.getSortedStacks();
+        List<Stack<Container>> sortedThisStacks = this.getSortedStacks();
+        List<Stack<Container>> sortedOtherStacks = other.getSortedStacks();
 
         if (sortedThisStacks.size() != sortedOtherStacks.size()) return false;
 
         for (int i = 0; i < sortedThisStacks.size(); i++) {
-            Deque<Container> thisStack = sortedThisStacks.get(i);
-            Deque<Container> otherStack = sortedOtherStacks.get(i);
+            Stack<Container> thisStack = sortedThisStacks.get(i);
+            Stack<Container> otherStack = sortedOtherStacks.get(i);
 
-            if (thisStack.size() != otherStack.size()) return false;
+            if(thisStack.size() != otherStack.size()) return false;
 
-            Iterator<Container> thisIterator = thisStack.iterator();
-            Iterator<Container> otherIterator = otherStack.iterator();
-
-            while (thisIterator.hasNext() && otherIterator.hasNext()) {
-                Container thisContainer = thisIterator.next();
-                Container goalContainer = otherIterator.next();
+            for (int j = 0; j < thisStack.size(); j++) {
+                Container thisContainer = thisStack.get(j);
+                Container goalContainer = otherStack.get(j);
 
                 if (!thisContainer.equals(goalContainer)) {
                     return false;
                 }
             }
         }
-
         return true;
     }
 
-    private List<Deque<Container>> getSortedStacks() {
-        List<Deque<Container>> sortedStacks = new ArrayList<>(stacks);
+    private List<Stack<Container>> getSortedStacks() {
+        List<Stack<Container>> sortedStacks = new ArrayList<>(getStacks());
         sortedStacks.sort(ContainersConfiguration.compareChars);
         return sortedStacks;
     }
 
     private void moveToGround(int fromStack) {
-        if (fromStack >= stacks.size()) return;
+        List<Stack<Container>> stacksLocal = getStacks();
+        if (fromStack >= stacksLocal.size()) return;
 
-        if (stacks.get(fromStack).isEmpty()) return;
 
-        Container container = stacks.get(fromStack).pop();
+        Container container = stacksLocal.get(fromStack).pop();
 
-        Deque<Container> newStack = new ArrayDeque<>();
+        Stack<Container> newStack = new Stack<>();
         newStack.push(container);
-        stacks.add(newStack);
+        stacksLocal.add(newStack);
 
         this.setCost(container.getcost());
     }
 
     private void moveToStack(int fromStack, int toStack) {
-        if (fromStack >= stacks.size() || toStack >= stacks.size()) {
+        List<Stack<Container>> stacksLocal = getStacks();
+        if (fromStack >= stacksLocal.size() || toStack >= stacksLocal.size()) {
             return;
         }
 
-        if (stacks.get(fromStack).isEmpty()) return;
-
-        Container container = stacks.get(fromStack).pop();
-        stacks.get(toStack).push(container);
+        Container container = stacksLocal.get(fromStack).pop();
+        stacksLocal.get(toStack).push(container);
 
         this.setCost(container.getcost());
     }
