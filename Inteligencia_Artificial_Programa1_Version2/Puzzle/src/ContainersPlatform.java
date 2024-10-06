@@ -3,8 +3,7 @@ import java.util.stream.Collectors;
 
 public class ContainersPlatform implements Ilayout, Cloneable {
 
-    
-    private List<Stack<Container>> stacks;
+    private List<Map<Character,Integer>> stacks;
     private double cost;
 
     public ContainersPlatform() {
@@ -21,7 +20,7 @@ public class ContainersPlatform implements Ilayout, Cloneable {
     private void InputConfiguration(String config) {
         String[] stacksConfig = config.split(" ");
         for (String stackStr : stacksConfig) {
-            Stack<Container> stack = new Stack<>();
+            Map<Character,Integer> stack = new HashMap<>();
             for (int i = 0; i < stackStr.length(); i++) {
                 char containerId = stackStr.charAt(i);
                 int movecost = 0;
@@ -30,7 +29,7 @@ public class ContainersPlatform implements Ilayout, Cloneable {
                     movecost = Character.getNumericValue(stackStr.charAt(i + 1));
                     i++;
                 }
-                stack.push(new Container(containerId, movecost));
+                stack.put(containerId,movecost);
             }
             stacks.add(stack);
         }
@@ -39,8 +38,8 @@ public class ContainersPlatform implements Ilayout, Cloneable {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(this.stacks.stream().sorted((s1,s2) -> String.valueOf(
-                s1.firstElement().getId()).compareTo(String.valueOf(s2.firstElement().getId()))).toArray());
+        Map<Character,Integer> mapSorted = new TreeMap<>(Comparator.naturalOrder());
+        return Arrays.hashCode(mapSorted.keySet().toArray(new Character[0]));
     }
 
     @Override
@@ -48,8 +47,8 @@ public class ContainersPlatform implements Ilayout, Cloneable {
     public ContainersPlatform clone() {
         ContainersPlatform copy = new ContainersPlatform();
         copy.stacks = new ArrayList<>(stacks.size());
-        for (Stack<Container> stack : stacks) {
-            copy.stacks.add((Stack<Container>) stack.clone());
+        for (Map<Character,Integer> stack : stacks) {
+            copy.stacks.add(new HashMap<>(stack));
         }
         copy.cost = getK();
         return copy;
