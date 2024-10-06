@@ -3,9 +3,24 @@ import java.util.stream.Collectors;
 
 public class ContainersPlatform implements Ilayout, Cloneable {
 
-    private List<Map<Character,Integer>> stacks;
+    private List<Stack<Contentor>> stacks;
     private double cost;
 
+    private class Contentor {
+
+        private char id;
+        private int ContentorCost;
+
+        public Contentor(char id, int cost) {
+            this.id = id;
+            this.ContentorCost = cost;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(id);
+        }
+    }
     public ContainersPlatform() {
         stacks = null;
         this.cost = 0;
@@ -20,16 +35,16 @@ public class ContainersPlatform implements Ilayout, Cloneable {
     private void InputConfiguration(String config) {
         String[] stacksConfig = config.split(" ");
         for (String stackStr : stacksConfig) {
-            Map<Character,Integer> stack = new HashMap<>();
+            Stack<Contentor> stack = new Stack<>();
             for (int i = 0; i < stackStr.length(); i++) {
-                char containerId = stackStr.charAt(i);
-                int movecost = 0;
+                char ContentorId = stackStr.charAt(i);
+                int movementCost = 0;
                 if(i + 1 < stackStr.length() && Character.isDigit(stackStr.charAt(i + 1)))
                 {
-                    movecost = Character.getNumericValue(stackStr.charAt(i + 1));
+                    movementCost = Character.getNumericValue(stackStr.charAt(i + 1));
                     i++;
                 }
-                stack.put(containerId,movecost);
+                stack.push(new Contentor(ContentorId,movementCost));
             }
             stacks.add(stack);
         }
@@ -38,8 +53,8 @@ public class ContainersPlatform implements Ilayout, Cloneable {
 
     @Override
     public int hashCode() {
-        Map<Character,Integer> mapSorted = new TreeMap<>(Comparator.naturalOrder());
-        return Arrays.hashCode(mapSorted.keySet().toArray(new Character[0]));
+        return Arrays.hashCode(this.stacks.stream().sorted((s1,s2) -> String.valueOf(
+                s1.firstElement().id).compareTo(String.valueOf(s2.firstElement().id))).toArray());
     }
 
     @Override
@@ -47,8 +62,8 @@ public class ContainersPlatform implements Ilayout, Cloneable {
     public ContainersPlatform clone() {
         ContainersPlatform copy = new ContainersPlatform();
         copy.stacks = new ArrayList<>(stacks.size());
-        for (Map<Character,Integer> stack : stacks) {
-            copy.stacks.add(new HashMap<>(stack));
+        for (Stack<Contentor> stack : stacks) {
+            copy.stacks.add((Stack<Contentor>) stack.clone());
         }
         copy.cost = getK();
         return copy;
@@ -58,10 +73,10 @@ public class ContainersPlatform implements Ilayout, Cloneable {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        List<Stack<Container>> sortedStacks = this.stacks.stream().sorted((s1,s2) -> String.valueOf(
-                s1.firstElement().getId()).compareTo(String.valueOf(s2.firstElement().getId()))).toList();;
+        List<Stack<Contentor>> sortedStacks = this.stacks.stream().sorted((s1,s2) -> String.valueOf(
+                s1.firstElement().id).compareTo(String.valueOf(s2.firstElement().id))).toList();
 
-        for (Stack<Container> stack : sortedStacks) {
+        for (Stack<Contentor> stack : sortedStacks) {
             sb.append("[");
             for (int i = 0; i < stack.size(); i++) {
                 sb.append(stack.get(i).toString());
@@ -76,18 +91,18 @@ public class ContainersPlatform implements Ilayout, Cloneable {
 
     private void toGround(int fromStack) {
         if (fromStack >= stacks.size()) return;
-        Stack<Container> newStack = new Stack<>();
-        Container container = stacks.get(fromStack).pop();
-        newStack.push(container);
+        Stack<Contentor> newStack = new Stack<>();
+        Contentor Contentor = stacks.get(fromStack).pop();
+        newStack.push(Contentor);
         stacks.add(newStack);
-        this.cost = container.getcost();
+        this.cost = Contentor.ContentorCost;
     }
 
     private void toStack(int fromStack, int toStack) {
         if (fromStack >= stacks.size() || toStack >= stacks.size()) return;
-        Container container = stacks.get(fromStack).pop();
-        stacks.get(toStack).push(container);
-        this.cost =  container.getcost();
+        Contentor Contentor = stacks.get(fromStack).pop();
+        stacks.get(toStack).push(Contentor);
+        this.cost =  Contentor.ContentorCost;
     }
 
     @Override
@@ -137,25 +152,25 @@ public class ContainersPlatform implements Ilayout, Cloneable {
 
         ContainersPlatform other = (ContainersPlatform) o;
 
-        List<Stack<Container>> sortedThisStacks = this.stacks.stream().sorted((s1,s2) -> String.valueOf(
-                s1.firstElement().getId()).compareTo(String.valueOf(s2.firstElement().getId()))).toList();
+        List<Stack<Contentor>> sortedThisStacks = this.stacks.stream().sorted((s1,s2) -> String.valueOf(
+                s1.firstElement().id).compareTo(String.valueOf(s2.firstElement().id))).toList();
 
-        List<Stack<Container>> sortedOtherStacks = other.stacks.stream().sorted((s1,s2) -> String.valueOf(
-                s1.firstElement().getId()).compareTo(String.valueOf(s2.firstElement().getId()))).toList();
+        List<Stack<Contentor>> sortedOtherStacks = other.stacks.stream().sorted((s1,s2) -> String.valueOf(
+                s1.firstElement().id).compareTo(String.valueOf(s2.firstElement().id))).toList();
 
         if (sortedThisStacks.size() != sortedOtherStacks.size()) return false;
 
         for (int i = 0; i < sortedThisStacks.size(); i++) {
-            Stack<Container> thisStack = sortedThisStacks.get(i);
-            Stack<Container> otherStack = sortedOtherStacks.get(i);
+            Stack<Contentor> thisStack = sortedThisStacks.get(i);
+            Stack<Contentor> otherStack = sortedOtherStacks.get(i);
 
             if(thisStack.size() != otherStack.size()) return false;
 
             for (int j = 0; j < thisStack.size(); j++) {
-                Container thisContainer = thisStack.get(j);
-                Container goalContainer = otherStack.get(j);
+                Contentor thisContentor = thisStack.get(j);
+                Contentor goalContentor = otherStack.get(j);
 
-                if (!thisContainer.equals(goalContainer)) {
+                if (!(thisContentor.id == goalContentor.id)) {
                     return false;
                 }
             }

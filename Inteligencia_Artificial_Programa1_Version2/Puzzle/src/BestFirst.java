@@ -69,10 +69,11 @@ public class BestFirst {
         return sucs;
     }
 
+
     final public Iterator<State> solve(Ilayout initial, Ilayout goal) {
         this.objective = goal;
         State initialConfiguration = new State(initial, null);
-        this.abertos = new PriorityQueue<>(10, Comparator.comparingDouble(State::getG));
+        this.abertos = new PriorityQueue<>(10, (s1, s2) -> (int) Math.signum(s1.getG()-s2.getG()));
         this.fechados = new HashSet<>();
         Set<Ilayout> conjAbertos = new HashSet<>();
 
@@ -91,6 +92,10 @@ public class BestFirst {
 
             for (State sucessor : sucs) {
                 if (!fechados.contains(sucessor.getLayout()) && !conjAbertos.contains(sucessor.getLayout())) {
+                    if(sucessor.getLayout().isGoal(this.objective))
+                    {
+                        return reconstructPath(sucessor);
+                    }
                     this.abertos.add(sucessor);
                     conjAbertos.add(sucessor.getLayout());
                 }
