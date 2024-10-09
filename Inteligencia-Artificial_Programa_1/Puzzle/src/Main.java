@@ -3,6 +3,12 @@ import java.util.Scanner;
 
 import static java.lang.System.out;
 
+/**
+ * Classe Cliente, para testar as outras classes e casos possiveis caso um cliente queira usar.
+ * @author Márcio Felício
+ * @version 1.0 09/10/2024
+ */
+
 public class Main {
     public static void main (String [] args) throws Exception {
         Scanner sc = new Scanner(System.in);

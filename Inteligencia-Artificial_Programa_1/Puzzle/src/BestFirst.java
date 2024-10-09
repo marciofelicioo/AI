@@ -69,6 +69,12 @@ public class BestFirst {
         return sucs;
     }
 
+    /**
+     * método que implementa o Best First search
+     * @param initial representa a configuração inicial que irá ser processada pelo agente
+     * @param goal representa a configuração objetivo que o agente quer alcançar
+     * @return Iterator<State> que corresponde a uma vista abstrata sobre uma estrutura de dados
+     */
     final public Iterator<State> solve(Ilayout initial, Ilayout goal) {
         this.objective = goal;
         State initialConfiguration = new State(initial, null);
@@ -102,6 +108,11 @@ public class BestFirst {
         return null;
     }
 
+    /**
+     * método que irá gerar o path desde a configuração objetivo até a configuração inicial
+     * @param goalState representa o estado objetivo encontrado
+     * @return Iterator<State> que corresponde a uma vista abstrata sobre uma estrutura de dados
+     */
     private Iterator<State> reconstructPath(State goalState) {
         List<State> path = new ArrayList<>();
         State current = goalState;

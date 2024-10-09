@@ -1,5 +1,12 @@
 import java.util.*;
-
+/**
+ * Classe ContainersConfiguration: Esta classe contém construtores que criam objetos ContainerConfiguration
+ * e o seu principal objetivo é criar sucessores de uma certa configurção para poder auxiliar
+ * o método solve da classe BestFirst (Best First Search)
+ * @author Márcio Felício
+ * @version 1.0
+ * @inv Cada Contêiner tem de ter um custo associado caso seja configuração inicial
+ */
 public class ContainersConfiguration implements Ilayout, Cloneable {
     /**
      * Estrutura estática da classe ContainerOrganizer
@@ -32,20 +39,12 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     }
 
     /**
-     * Construtor de cópia
+     * Construtor de cópia para casos de encapsulamento de dados
      */
     public ContainersConfiguration(ContainersConfiguration other) {
         stacks = new ArrayList<>();
-
-        for (Stack<Container> stack : other.stacks) {
-            Stack<Container> newStack = new Stack<>();
-
-            for (Container container : stack) {
-                newStack.push(new Container(container));
-            }
-
-            stacks.add(newStack);
-        }
+        setStacks(other.getStacks());
+        setCost(other.getK());
     }
     private void parseInput(String config, boolean isInitialState) {
         String[] stacksConfig = config.split(" ");
@@ -67,6 +66,11 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
             stacks.add(stack);
         }
     }
+
+    /**
+     * getter e respetivos setter de stacks e custo
+     * @return stacks
+     */
     public List<Stack<Container>> getStacks()
     {
         return stacks;
@@ -76,9 +80,14 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     public void setStacks(List<Stack<Container>> ss)
     {
         stacks = new ArrayList<>();
-        for(Stack<Container> s: ss)
-        {
-            stacks.add((Stack<Container>)s.clone());
+        for (Stack<Container> stack : ss) {
+            Stack<Container> newStack = new Stack<>();
+
+            for (Container container : stack) {
+                newStack.push(new Container(container));
+            }
+
+            stacks.add(newStack);
         }
     }
 
@@ -87,29 +96,35 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
         this.cost = cost;
     }
 
+    /**
+     * método que remove da lista de stacks stacks que estejam vazias através da operação
+     * removeIf da java Collection FrameWork com a respetiva interface funcional
+     * Predicate associada
+     */
     private void removeEmptyStacks() {
         stacks.removeIf(Stack::isEmpty);
     }
 
+    /**
+     * @return uma chave única para a instância criada
+     */
     @Override
     public int hashCode() {
         return Arrays.hashCode(this.getSortedStacks().toArray());
     }
 
-
+    /**
+     * @return um clone de uma determinada instância com o auxilio do construtor de cópia
+     */
     @Override
     @SuppressWarnings("unchecked")
     public ContainersConfiguration clone() {
-        List<Stack<Container>> stacksLocal = getStacks();
-        ContainersConfiguration copy = new ContainersConfiguration();
-        copy.setStacks(new ArrayList<>(stacksLocal.size()));
-        for (Stack<Container> stack : stacksLocal) {
-            copy.getStacks().add((Stack<Container>) stack.clone());
-        }
-        copy.setCost(getK());
-        return copy;
+        return new ContainersConfiguration(this);
     }
 
+    /**
+     * @return representação textual da estrutura da instância
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -129,15 +144,16 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
         return sb.toString();
     }
 
+    /**
+     * @return as configurações feitas através de uma configuração pai
+     */
     @Override
     public List<Ilayout> children() {
         List<Ilayout> children = new ArrayList<>();
         List<Stack<Container>> stacksLocal = getStacks();
         for (int i = 0; i < stacksLocal.size(); i++) {
-            if (!getStacks().get(i).isEmpty()) {
-                ContainersConfiguration newConfiguration;
-
-                newConfiguration = this.clone();
+            if (!stacksLocal.get(i).isEmpty()) {
+                ContainersConfiguration newConfiguration = new ContainersConfiguration(this);
                 newConfiguration.moveToGround(i);
                 newConfiguration.removeEmptyStacks();
                 if (!newConfiguration.equals(this)) {
@@ -146,7 +162,7 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
 
                 for (int j = 0; j < stacksLocal.size(); j++) {
                     if (i != j) {
-                        newConfiguration = this.clone();
+                        newConfiguration = new ContainersConfiguration(this);
                         newConfiguration.moveToStack(i, j);
                         newConfiguration.removeEmptyStacks();
                         if (!newConfiguration.equals(this)) {
@@ -160,16 +176,29 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
         return children;
     }
 
+    /**
+     * verifica se a configuração l é a configuração objetivo
+     * @param l representa a configuração objetivo que queremos testar
+     * @return true se forem iguais e false caso contrário
+     */
     @Override
     public boolean isGoal(Ilayout l) {
         return l.equals(this);
     }
 
+    /**
+     * retorna o custo de movimento de um certo contentor
+     */
     @Override
     public double getK() {
         return this.cost;
     }
 
+    /**
+     * Verifica se as configurações são iguais
+     * @param o representa uma configuração que será testada com o this (instância receptora)
+     * @return true caso sejam iguais e false caso contrário
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -200,12 +229,19 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
         return true;
     }
 
+    /**
+     * ordena as stacks segundo o id dos contêiners
+     * @return lista de configurações ordenadas
+     */
     private List<Stack<Container>> getSortedStacks() {
         List<Stack<Container>> sortedStacks = new ArrayList<>(getStacks());
         sortedStacks.sort(ContainersConfiguration.compareChars);
         return sortedStacks;
     }
-
+    /**
+     * move o container de uma stack e coloca noutra stack completamente nova
+     * @param fromStack representa a stack de onde será removido o container
+     */
     private void moveToGround(int fromStack) {
         List<Stack<Container>> stacksLocal = getStacks();
         if (fromStack >= stacksLocal.size()) return;
@@ -220,6 +256,11 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
         this.setCost(container.getcost());
     }
 
+    /**
+     *
+     * @param fromStack representa a stack de onde será removido o contêiner
+     * @param toStack representa a stack para onde será enviado o contêiner
+     */
     private void moveToStack(int fromStack, int toStack) {
         List<Stack<Container>> stacksLocal = getStacks();
         if (fromStack >= stacksLocal.size() || toStack >= stacksLocal.size()) {
