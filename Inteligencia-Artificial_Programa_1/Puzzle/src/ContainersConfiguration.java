@@ -42,10 +42,19 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
      * Construtor de cópia para casos de encapsulamento de dados
      */
     public ContainersConfiguration(ContainersConfiguration other) {
-        stacks = new ArrayList<>();
-        setStacks(other.getStacks());
-        setCost(other.getK());
+        this.stacks = new ArrayList<>(other.stacks.size());
+
+        for (Stack<Container> stack : other.stacks) {
+            Stack<Container> newStack = new Stack<>();
+            for (Container container : stack) {
+                newStack.push(new Container(container));
+            }
+            this.stacks.add(newStack);
+        }
+
+        this.cost = other.getK();
     }
+
     private void parseInput(String config, boolean isInitialState) {
         String[] stacksConfig = config.split(" ");
         for (String stackStr : stacksConfig) {
@@ -68,7 +77,7 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     }
 
     /**
-     * getter e respetivos setter de stacks e custo
+     * getter para as stacks e setter para o custo de movimento de um contentor
      * @return stacks
      */
     public List<Stack<Container>> getStacks()
@@ -76,20 +85,6 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
         return stacks;
     }
 
-    @SuppressWarnings("unchecked")
-    public void setStacks(List<Stack<Container>> ss)
-    {
-        stacks = new ArrayList<>();
-        for (Stack<Container> stack : ss) {
-            Stack<Container> newStack = new Stack<>();
-
-            for (Container container : stack) {
-                newStack.push(new Container(container));
-            }
-
-            stacks.add(newStack);
-        }
-    }
 
     public void setCost(double cost)
     {
@@ -117,7 +112,6 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
      * @return um clone de uma determinada instância com o auxilio do construtor de cópia
      */
     @Override
-    @SuppressWarnings("unchecked")
     public ContainersConfiguration clone() {
         return new ContainersConfiguration(this);
     }
