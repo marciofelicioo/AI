@@ -1,7 +1,7 @@
 import java.util.*;
 public class AStar {
     protected Queue<State> abertos;
-    private Map<Ilayout, State> fechados;
+    private Set<Ilayout> fechados = new HashSet<>();
     private State actual;
     private Ilayout objective;
 
@@ -62,16 +62,20 @@ public class AStar {
         List<State> sucs = new ArrayList<>();
         List<Ilayout> children = n.getLayout().children();
 
+        // Adiciona apenas layouts únicos ao HashSet e cria um novo estado para cada um
         for (Ilayout e : children) {
-            if ((n.getFather() == null || !e.equals(n.getFather().getLayout()))
-            && !fechados.containsKey(e)) {
+            if ((n.getFather() == null || !e.equals(n.getFather().getLayout()))) {
                 State nn = new State(e, n);
                 sucs.add(nn);
             }
         }
 
+        // Ordena os sucessores com base na heurística (h(n)) para expandir primeiro os mais promissores
+//        sucs.sort(Comparator.comparingDouble(s -> s.getLayout().computeHeuristic(this.objective)));
+//
         return sucs;
     }
+
 
 
     /**
@@ -86,7 +90,7 @@ public class AStar {
 
         abertos = new PriorityQueue<>(10000, Comparator.comparingDouble(s -> s.getF(this.objective)));
         Map<Ilayout, State> abertosMap = new HashMap<>();  // Novo HashMap para estados abertos
-        fechados = new HashMap<>();
+        fechados = new HashSet<>();
 
         State initialState = new State(initial, null);
         abertos.add(initialState);
@@ -103,13 +107,13 @@ public class AStar {
                 return actual;
             }
 
-            fechados.put(actual.getLayout(), actual);
+            fechados.add(actual.getLayout());
 
             List<State> sucs = sucessores(actual);
             generatedNodes += sucs.size();
 
             for (State successor : sucs) {
-                if (!fechados.containsKey(successor.getLayout()) && !abertosMap.containsKey(successor.getLayout())) {
+                if (!fechados.contains(successor.getLayout()) && !abertosMap.containsKey(successor.getLayout())) {
                     //System.out.println(successor);
                     if (successor.getLayout().equals(this.objective)) {
                         return successor;

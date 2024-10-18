@@ -20,7 +20,7 @@ public class Platform implements Ilayout, Cloneable {
      */
     private List<Stack<Container>> stacks;
     private double cost;
-
+    Map<Character, int[]> goalPositions;
      /**
      * Construtor por omissão
      */
@@ -238,19 +238,22 @@ public class Platform implements Ilayout, Cloneable {
         List<Stack<Container>> currentStacks = current.getStacks();
         List<Stack<Container>> goalStacks = goal.getStacks();
 
-        // Mapa para armazenar a posição alvo de cada contentor no estado objetivo
-        Map<Character, int[]> goalPositions = new HashMap<>();
-
-        // Preencher o mapa com a posição objetivo de cada contentor no estado objetivo
-        for (int i = 0; i < goalStacks.size(); i++) {
-            Stack<Container> goalStack = goalStacks.get(i);
-            for (int j = 0; j < goalStack.size(); j++) {
-                Container goalContainer = goalStack.get(j);
-                goalPositions.put(goalContainer.getId(), new int[]{i, j});  // Posição [pilha, índice na pilha]
+        // Cache do mapa de posições alvo no estado objetivo para evitar recalcular
+        if (goal.goalPositions == null) {
+            goal.goalPositions = new HashMap<>();
+            for (int i = 0; i < goalStacks.size(); i++) {
+                Stack<Container> goalStack = goalStacks.get(i);
+                for (int j = 0; j < goalStack.size(); j++) {
+                    Container goalContainer = goalStack.get(j);
+                    goal.goalPositions.put(goalContainer.getId(), new int[]{i, j});  // Posição [pilha, índice]
+                }
             }
         }
 
-        // Percorrer a configuração atual e verificar se o contentor está na pilha correta e na posição correta
+        // Reutiliza o mapa goalPositions
+        Map<Character, int[]> goalPositions = goal.goalPositions;
+
+        // Percorrer as pilhas atuais e verificar se cada contentor está na pilha correta e na posição correta
         for (int i = 0; i < currentStacks.size(); i++) {
             Stack<Container> currentStack = currentStacks.get(i);
             for (int j = 0; j < currentStack.size(); j++) {
@@ -282,8 +285,10 @@ public class Platform implements Ilayout, Cloneable {
             }
         }
 
-        return totalEstimatedCost;  // Retorna o custo estimado
+        return totalEstimatedCost;
     }
+
+
 
 
 
