@@ -9,13 +9,13 @@ import java.util.*;
  */
 public class ContainersConfiguration implements Ilayout, Cloneable {
     /**
-     * Estrutura estática da classe ContainerOrganizer
+     * Estrutura estática da classe ContainerPlatform
      */
     public static final Comparator<Stack<Container>> compareChars = (s1,s2) -> String.valueOf(
             s1.firstElement().getId()).compareTo(String.valueOf(s2.firstElement().getId()));
 
     /**
-     * Estrutura da classe ContainerOrganizer
+     * Estrutura da classe ContainerPlatform
      */
     private List<Stack<Container>> stacks;
     private double cost;
@@ -143,15 +143,16 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
      */
     @Override
     public List<Ilayout> children() {
-        List<Ilayout> children = new ArrayList<>();
+        Set<Ilayout> childrenSet = new HashSet<>();
         List<Stack<Container>> stacksLocal = getStacks();
+
         for (int i = 0; i < stacksLocal.size(); i++) {
             if (!stacksLocal.get(i).isEmpty()) {
                 ContainersConfiguration newConfiguration = new ContainersConfiguration(this);
                 newConfiguration.moveToGround(i);
                 newConfiguration.removeEmptyStacks();
                 if (!newConfiguration.equals(this)) {
-                    children.add(newConfiguration);
+                    childrenSet.add(newConfiguration);
                 }
 
                 for (int j = 0; j < stacksLocal.size(); j++) {
@@ -160,15 +161,15 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
                         newConfiguration.moveToStack(i, j);
                         newConfiguration.removeEmptyStacks();
                         if (!newConfiguration.equals(this)) {
-                            children.add(newConfiguration);
+                            childrenSet.add(newConfiguration);
                         }
                     }
                 }
             }
         }
-
-        return children;
+        return new ArrayList<>(childrenSet);
     }
+
 
     /**
      * verifica se a configuração l é a configuração objetivo

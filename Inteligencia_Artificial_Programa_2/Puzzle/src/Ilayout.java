@@ -13,4 +13,8 @@ public interface Ilayout {
      @return the cost from the receiver to a successor
      */
     double getK();
+    /**
+     * @return the minimun estimated cost from current configuration to goal
+     */
+    double computeHeuristic(Ilayout goalLayout);
 }

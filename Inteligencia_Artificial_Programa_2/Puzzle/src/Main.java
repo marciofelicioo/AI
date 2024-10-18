@@ -1,4 +1,4 @@
-import java.util.Iterator;
+import java.util.Objects;
 import java.util.Scanner;
 
 import static java.lang.System.out;
@@ -12,21 +12,17 @@ import static java.lang.System.out;
 public class Main {
     public static void main (String [] args) throws Exception {
         Scanner sc = new Scanner(System.in);
-        BestFirst s = new BestFirst();
+        AStar s = new AStar();
         String firstConfiguration = sc.nextLine();
         String secondConfiguration = sc.nextLine();
         //out.println(firstConfiguration + " " + secondConfiguration);
-        ContainersConfiguration containerConfiguration1 = new ContainersConfiguration(firstConfiguration,true);
-        ContainersConfiguration containersConfiguration2 = new ContainersConfiguration(secondConfiguration,false);
-        Iterator<BestFirst.State> it = s.solve(containerConfiguration1, containersConfiguration2);
-        if (it==null) out.println("no solution found");
-        else {
-            while(it.hasNext()) {
-                BestFirst.State i = it.next();
-                out.println(i);
-                if (!it.hasNext()) out.println((int)i.getG());
-            }
-        }
+        Platform containerConfiguration1 = new Platform(firstConfiguration,true);
+        Platform containersConfiguration2 = new Platform(secondConfiguration,false);
+        AStar.State result = s.solve(containerConfiguration1,containersConfiguration2);
+        out.println(result);
+        out.println((int)result.getG());
+        out.println(AStar.getGeneratedNodes());
+        out.println(AStar.getExpandedNodes());
         sc.close();
     }
 }

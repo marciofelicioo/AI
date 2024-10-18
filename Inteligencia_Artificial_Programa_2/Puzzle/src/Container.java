@@ -26,13 +26,13 @@ public class Container {
      */
     public Container(Container c) {
         this.id = c.getId();
-        this.containerCost = c.getcost();
+        this.containerCost = c.getCost();
     }
 
     /**
      * getters
      */
-    public int getcost() {
+    public int getCost() {
         return this.containerCost;
     }
 
@@ -45,7 +45,7 @@ public class Container {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(getId(),getcost());
+        return Objects.hash(getId());
     }
 
     /**

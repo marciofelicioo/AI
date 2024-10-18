@@ -1,13 +1,14 @@
 import java.util.*;
+
 /**
- * Classe ContainersConfiguration: Esta classe contém construtores que criam objetos ContainerConfiguration
+ * Classe Platform: Esta classe contém construtores que criam objetos ContainerConfiguration
  * e o seu principal objetivo é criar sucessores de uma certa configurção para poder auxiliar
  * o método solve da classe BestFirst (Best First Search)
  * @author Márcio Felício
  * @version 1.0
  * @inv Cada Contêiner tem de ter um custo associado caso seja configuração inicial
  */
-public class ContainersConfiguration implements Ilayout, Cloneable {
+public class Platform implements Ilayout, Cloneable {
     /**
      * Estrutura estática da classe ContainerOrganizer
      */
@@ -20,11 +21,10 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     private List<Stack<Container>> stacks;
     private double cost;
 
-
-    /**
+     /**
      * Construtor por omissão
      */
-    public ContainersConfiguration() {
+    public Platform() {
         stacks = null;
         this.cost = 0;
     }
@@ -32,7 +32,7 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     /**
      * Construtor de inicialização
      */
-    public ContainersConfiguration(String config, boolean isInitialState) {
+    public Platform(String config, boolean isInitialState) {
         stacks = new ArrayList<>();
         parseInput(config, isInitialState);
         this.cost = 0;
@@ -41,7 +41,7 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     /**
      * Construtor de cópia para casos de encapsulamento de dados
      */
-    public ContainersConfiguration(ContainersConfiguration other) {
+    public Platform(Platform other) {
         this.stacks = new ArrayList<>(other.stacks.size());
 
         for (Stack<Container> stack : other.stacks) {
@@ -92,28 +92,26 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     }
 
     /**
-     * método que remove da lista de stacks stacks que estejam vazias através da operação
-     * removeIf da java Collection FrameWork com a respetiva interface funcional
-     * Predicate associada
-     */
-    private void removeEmptyStacks() {
-        stacks.removeIf(Stack::isEmpty);
-    }
-
-    /**
      * @return uma chave única para a instância criada
      */
     @Override
     public int hashCode() {
-        return Arrays.hashCode(this.getSortedStacks().toArray());
+        int hash = 7;
+
+        for (Stack<Container> stack : stacks) {
+            hash = 31 * hash + (stack.isEmpty() ? 0 : stack.hashCode());
+        }
+
+        return hash;
     }
+
 
     /**
      * @return um clone de uma determinada instância com o auxilio do construtor de cópia
      */
     @Override
-    public ContainersConfiguration clone() {
-        return new ContainersConfiguration(this);
+    public Platform clone() {
+        return new Platform(this);
     }
 
     /**
@@ -141,32 +139,38 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
     /**
      * @return as configurações feitas através de uma configuração pai
      */
+
     @Override
     public List<Ilayout> children() {
         List<Ilayout> children = new ArrayList<>();
-        List<Stack<Container>> stacksLocal = getStacks();
-        for (int i = 0; i < stacksLocal.size(); i++) {
-            if (!stacksLocal.get(i).isEmpty()) {
-                ContainersConfiguration newConfiguration = new ContainersConfiguration(this);
-                newConfiguration.moveToGround(i);
-                newConfiguration.removeEmptyStacks();
-                if (!newConfiguration.equals(this)) {
-                    children.add(newConfiguration);
+
+        if (!this.stacks.isEmpty()) {
+            for (int i = 0; i < this.stacks.size(); i++) {
+                Stack<Container> sourceStack = this.stacks.get(i);
+
+                for (int j = 0; j < this.stacks.size(); j++) {
+                    if (i == j) continue;
+
+                    Platform child = this.clone();
+
+                    child.moveToStack(i,j);
+
+                    if (child.stacks.get(i).isEmpty()) {
+                        child.stacks.remove(i);
+                    }
+
+                    children.add(child);
                 }
 
-                for (int j = 0; j < stacksLocal.size(); j++) {
-                    if (i != j) {
-                        newConfiguration = new ContainersConfiguration(this);
-                        newConfiguration.moveToStack(i, j);
-                        newConfiguration.removeEmptyStacks();
-                        if (!newConfiguration.equals(this)) {
-                            children.add(newConfiguration);
-                        }
-                    }
+                if (sourceStack.size() >= 2) {
+                    Platform child = this.clone();
+
+                    child.moveToGround(i);
+
+                    children.add(child);
                 }
             }
         }
-
         return children;
     }
 
@@ -177,7 +181,7 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
      */
     @Override
     public boolean isGoal(Ilayout l) {
-        return l.equals(this);
+        return this.equals(l);
     }
 
     /**
@@ -198,48 +202,88 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ContainersConfiguration other = (ContainersConfiguration) o;
+        Platform other = (Platform) o;
 
-        List<Stack<Container>> sortedThisStacks = this.getSortedStacks();
-        List<Stack<Container>> sortedOtherStacks = other.getSortedStacks();
-
-        if (sortedThisStacks.size() != sortedOtherStacks.size()) return false;
-
-        for (int i = 0; i < sortedThisStacks.size(); i++) {
-            Stack<Container> thisStack = sortedThisStacks.get(i);
-            Stack<Container> otherStack = sortedOtherStacks.get(i);
-
-            if(thisStack.size() != otherStack.size()) return false;
-
-            for (int j = 0; j < thisStack.size(); j++) {
-                Container thisContainer = thisStack.get(j);
-                Container goalContainer = otherStack.get(j);
-
-                if (!thisContainer.equals(goalContainer)) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return this.toString().equals(other.toString());
     }
 
+
     /**
-     * ordena as stacks segundo o id dos contêiners
+     * Ordena as stacks segundo o id dos contêiners, ignorando as stacks vazias.
      * @return lista de configurações ordenadas
      */
     private List<Stack<Container>> getSortedStacks() {
         List<Stack<Container>> sortedStacks = new ArrayList<>(getStacks());
-        sortedStacks.sort(ContainersConfiguration.compareChars);
+
+
+        sortedStacks.removeIf(Stack::isEmpty);
+
+        sortedStacks.sort((s1, s2) -> {
+                if (!s1.isEmpty() && !s2.isEmpty()) {
+                return String.valueOf(s1.firstElement().getId())
+                        .compareTo(String.valueOf(s2.firstElement().getId()));
+            }
+            return 0;
+        });
+
         return sortedStacks;
     }
+
+
+    public double computeHeuristic(Ilayout goalLayout) {
+        Platform current = (Platform) this;
+        Platform goal = (Platform) goalLayout;
+
+        double totalEstimatedCost = 0;
+        List<Stack<Container>> currentStacks = current.getStacks();
+        List<Stack<Container>> goalStacks = goal.getStacks();
+
+        Map<Character, int[]> goalPositions = new HashMap<>();
+
+        for (int i = 0; i < goalStacks.size(); i++) {
+            Stack<Container> goalStack = goalStacks.get(i);
+            for (int j = 0; j < goalStack.size(); j++) {
+                Container goalContainer = goalStack.get(j);
+                goalPositions.put(goalContainer.getId(), new int[]{i, j});
+            }
+        }
+
+        int conflicts = 0;
+
+        for (int i = 0; i < currentStacks.size(); i++) {
+            Stack<Container> currentStack = currentStacks.get(i);
+
+            for (int j = 0; j < currentStack.size(); j++) {
+                Container currentContainer = currentStack.get(j);
+
+                int[] goalPosition = goalPositions.get(currentContainer.getId());
+
+                if (goalPosition == null) {
+                    continue;
+                }
+
+                int goalStackIndex = goalPosition[0];
+                int goalPositionIndex = goalPosition[1];
+
+                if (goalStackIndex != i || goalPositionIndex != j) {
+                    conflicts++;
+                }
+            }
+        }
+
+        totalEstimatedCost = conflicts;
+
+        return totalEstimatedCost;
+    }
+
+
     /**
      * move o container de uma stack e coloca noutra stack completamente nova
      * @param fromStack representa a stack de onde será removido o container
      */
     private void moveToGround(int fromStack) {
         List<Stack<Container>> stacksLocal = getStacks();
-        if (fromStack >= stacksLocal.size()) return;
-
+        if (fromStack >= stacksLocal.size() || stacksLocal.get(fromStack).isEmpty()) return;
 
         Container container = stacksLocal.get(fromStack).pop();
 
@@ -247,7 +291,7 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
         newStack.push(container);
         stacksLocal.add(newStack);
 
-        this.setCost(container.getcost());
+        this.setCost(container.getCost());
     }
 
     /**
@@ -257,13 +301,13 @@ public class ContainersConfiguration implements Ilayout, Cloneable {
      */
     private void moveToStack(int fromStack, int toStack) {
         List<Stack<Container>> stacksLocal = getStacks();
-        if (fromStack >= stacksLocal.size() || toStack >= stacksLocal.size()) {
+        if (fromStack >= stacksLocal.size() || toStack >= stacksLocal.size() || stacksLocal.get(fromStack).isEmpty()) {
             return;
         }
 
         Container container = stacksLocal.get(fromStack).pop();
         stacksLocal.get(toStack).push(container);
 
-        this.setCost(container.getcost());
+        this.setCost(container.getCost());
     }
 }
