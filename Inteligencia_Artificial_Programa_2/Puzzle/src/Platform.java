@@ -238,43 +238,55 @@ public class Platform implements Ilayout, Cloneable {
         List<Stack<Container>> currentStacks = current.getStacks();
         List<Stack<Container>> goalStacks = goal.getStacks();
 
+        // Mapa para armazenar a posição alvo de cada contentor no estado objetivo
         Map<Character, int[]> goalPositions = new HashMap<>();
 
+        // Preencher o mapa com a posição objetivo de cada contentor no estado objetivo
         for (int i = 0; i < goalStacks.size(); i++) {
             Stack<Container> goalStack = goalStacks.get(i);
             for (int j = 0; j < goalStack.size(); j++) {
                 Container goalContainer = goalStack.get(j);
-                goalPositions.put(goalContainer.getId(), new int[]{i, j});
+                goalPositions.put(goalContainer.getId(), new int[]{i, j});  // Posição [pilha, índice na pilha]
             }
         }
 
-        int conflicts = 0;
-
+        // Percorrer a configuração atual e verificar se o contentor está na pilha correta e na posição correta
         for (int i = 0; i < currentStacks.size(); i++) {
             Stack<Container> currentStack = currentStacks.get(i);
-
             for (int j = 0; j < currentStack.size(); j++) {
                 Container currentContainer = currentStack.get(j);
 
+                // Obter a posição objetivo do contentor
                 int[] goalPosition = goalPositions.get(currentContainer.getId());
 
                 if (goalPosition == null) {
-                    continue;
+                    continue;  // O contentor não existe no estado objetivo
                 }
 
                 int goalStackIndex = goalPosition[0];
                 int goalPositionIndex = goalPosition[1];
 
-                if (goalStackIndex != i || goalPositionIndex != j) {
-                    conflicts++;
+                // Verifica se o contentor está na pilha errada
+                if (goalStackIndex != i) {
+                    // Se o contentor deveria estar no chão e está no chão, ele está correto
+                    if (goalPositionIndex == 0 && j == 0) {
+                        continue;  // Se o contentor está na posição correta (chão), não adicionar custo
+                    }
+                    // Caso contrário, ele está fora do lugar
+                    totalEstimatedCost += 1;
+                }
+                // Verifica se o contentor está na pilha correta, mas fora da posição final correta
+                else if (goalPositionIndex != j) {
+                    totalEstimatedCost += 1;
                 }
             }
         }
 
-        totalEstimatedCost = conflicts;
-
-        return totalEstimatedCost;
+        return totalEstimatedCost;  // Retorna o custo estimado
     }
+
+
+
 
 
     /**
