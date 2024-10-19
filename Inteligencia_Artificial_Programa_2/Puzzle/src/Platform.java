@@ -20,7 +20,7 @@ public class Platform implements Ilayout, Cloneable {
      */
     private List<Stack<Container>> stacks;
     private double cost;
-    Map<Character, int[]> goalPositions;
+    private Map<Character, int[]> cachedGoalPositions;
      /**
      * Construtor por omissão
      */
@@ -121,9 +121,9 @@ public class Platform implements Ilayout, Cloneable {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        List<Stack<Container>> sortedStacks = getSortedStacks();
+        getSortedStacks();
 
-        for (Stack<Container> stack : sortedStacks) {
+        for (Stack<Container> stack : stacks) {
             sb.append("[");
             for (int i = 0; i < stack.size(); i++) {
                 sb.append(stack.get(i).toString());
@@ -204,30 +204,41 @@ public class Platform implements Ilayout, Cloneable {
 
         Platform other = (Platform) o;
 
-        return this.toString().equals(other.toString());
+        this.getSortedStacks();
+        other.getSortedStacks();
+
+        if (this.stacks.size() != other.stacks.size()) return false;
+
+        for (int i = 0; i < this.stacks.size(); i++) {
+            Stack<Container> thisStack = this.stacks.get(i);
+            Stack<Container> otherStack = other.stacks.get(i);
+
+            if(thisStack.size() != otherStack.size()) return false;
+
+            for (int j = 0; j < thisStack.size(); j++) {
+                Container thisContainer = thisStack.get(j);
+                Container goalContainer = otherStack.get(j);
+
+                if (!thisContainer.equals(goalContainer)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
+
+
 
 
     /**
      * Ordena as stacks segundo o id dos contêiners, ignorando as stacks vazias.
      * @return lista de configurações ordenadas
      */
-    private List<Stack<Container>> getSortedStacks() {
-        List<Stack<Container>> sortedStacks = new ArrayList<>(getStacks());
-
-
-        sortedStacks.removeIf(Stack::isEmpty);
-
-        sortedStacks.sort((s1, s2) -> {
-                if (!s1.isEmpty() && !s2.isEmpty()) {
-                return String.valueOf(s1.firstElement().getId())
-                        .compareTo(String.valueOf(s2.firstElement().getId()));
-            }
-            return 0;
-        });
-
-        return sortedStacks;
+    private void getSortedStacks() {
+        getStacks().sort(Comparator.comparing(stack -> stack.firstElement().getId()));  // Ordena diretamente
     }
+
+
 
 
     public double computeHeuristic(Ilayout goalLayout) {
@@ -235,58 +246,36 @@ public class Platform implements Ilayout, Cloneable {
         Platform goal = (Platform) goalLayout;
 
         double totalEstimatedCost = 0;
-        List<Stack<Container>> currentStacks = current.getStacks();
-        List<Stack<Container>> goalStacks = goal.getStacks();
 
-        // Cache do mapa de posições alvo no estado objetivo para evitar recalcular
-        if (goal.goalPositions == null) {
-            goal.goalPositions = new HashMap<>();
-            for (int i = 0; i < goalStacks.size(); i++) {
-                Stack<Container> goalStack = goalStacks.get(i);
+        if (cachedGoalPositions == null) {
+            cachedGoalPositions = new HashMap<>();
+            for (int i = 0; i < goal.stacks.size(); i++) {
+                Stack<Container> goalStack = goal.stacks.get(i);
                 for (int j = 0; j < goalStack.size(); j++) {
-                    Container goalContainer = goalStack.get(j);
-                    goal.goalPositions.put(goalContainer.getId(), new int[]{i, j});  // Posição [pilha, índice]
+                    cachedGoalPositions.put(goalStack.get(j).getId(), new int[]{i, j});
                 }
             }
         }
 
-        // Reutiliza o mapa goalPositions
-        Map<Character, int[]> goalPositions = goal.goalPositions;
-
-        // Percorrer as pilhas atuais e verificar se cada contentor está na pilha correta e na posição correta
-        for (int i = 0; i < currentStacks.size(); i++) {
-            Stack<Container> currentStack = currentStacks.get(i);
+        for (int i = 0; i < current.stacks.size(); i++) {
+            Stack<Container> currentStack = current.stacks.get(i);
             for (int j = 0; j < currentStack.size(); j++) {
                 Container currentContainer = currentStack.get(j);
+                int[] goalPosition = cachedGoalPositions.get(currentContainer.getId());
 
-                // Obter a posição objetivo do contentor
-                int[] goalPosition = goalPositions.get(currentContainer.getId());
-
-                if (goalPosition == null) {
-                    continue;  // O contentor não existe no estado objetivo
-                }
-
-                int goalStackIndex = goalPosition[0];
-                int goalPositionIndex = goalPosition[1];
-
-                // Verifica se o contentor está na pilha errada
-                if (goalStackIndex != i) {
-                    // Se o contentor deveria estar no chão e está no chão, ele está correto
-                    if (goalPositionIndex == 0 && j == 0) {
-                        continue;  // Se o contentor está na posição correta (chão), não adicionar custo
-                    }
-                    // Caso contrário, ele está fora do lugar
-                    totalEstimatedCost += 1;
-                }
-                // Verifica se o contentor está na pilha correta, mas fora da posição final correta
-                else if (goalPositionIndex != j) {
-                    totalEstimatedCost += 1;
+                // Ignora se já está na pilha e posição corretas
+                if (goalPosition != null && !(j == 0 && goalPosition[1] == 0) && !(j > 0 && goalPosition[1] == j)) {
+                    totalEstimatedCost += currentContainer.getCost();
                 }
             }
         }
 
         return totalEstimatedCost;
     }
+
+
+
+
 
 
 
