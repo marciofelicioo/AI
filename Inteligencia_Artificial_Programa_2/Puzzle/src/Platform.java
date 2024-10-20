@@ -62,6 +62,10 @@ public class Platform implements Ilayout, Cloneable {
             for (int i = 0; i < stackStr.length(); i++) {
                 char containerId = stackStr.charAt(i);
 
+                if (containerId == '0' && i + 1 < stackStr.length() && Character.isDigit(stackStr.charAt(i + 1))) {
+                    containerId = 'O';  // Se "0" é seguido por um número, tratá-lo como "O"
+                }
+
                 int movecost = (isInitialState && i + 1 < stackStr.length() && Character.isDigit(stackStr.charAt(i + 1)))
                         ? Character.getNumericValue(stackStr.charAt(i + 1))
                         : 0;
@@ -272,15 +276,6 @@ public class Platform implements Ilayout, Cloneable {
 
         return totalEstimatedCost;
     }
-
-
-
-
-
-
-
-
-
 
 
     /**

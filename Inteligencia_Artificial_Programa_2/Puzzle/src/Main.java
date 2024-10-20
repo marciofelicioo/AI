@@ -18,6 +18,8 @@ public class Main {
 
         Platform containerConfiguration1 = new Platform(firstConfiguration, true);
         Platform containersConfiguration2 = new Platform(secondConfiguration, false);
+        double heuristicCost = containerConfiguration1.computeHeuristic(containersConfiguration2);
+        System.out.println("Custo heurístico estimado: " + heuristicCost);
 
         long startTime = System.nanoTime();
 

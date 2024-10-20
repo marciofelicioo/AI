@@ -82,21 +82,21 @@ public class AStar {
     public State solve(Ilayout initial, Ilayout goal) {
         this.objective = goal;
 
-        abertos = new PriorityQueue<>(10000, Comparator.comparingDouble(s -> s.getF(this.objective)));
+        abertos = new PriorityQueue<>(100000, Comparator.comparingDouble(s -> s.getF(this.objective)));
         Map<Ilayout, State> abertosMap = new HashMap<>();
         Map<Ilayout, Boolean> activeMap = new HashMap<>();
         fechados = new HashMap<>();
+
 
         State initialState = new State(initial, null);
         abertos.add(initialState);
         abertosMap.put(initial, initialState);
         activeMap.put(initial, true);
-
-        double currentBestCost = Double.MAX_VALUE;
-
+        System.out.println(initial);
         while (!abertos.isEmpty()) {
-            actual = abertos.poll();
 
+            actual = abertos.poll();
+//            System.out.println(actual);
             if (!activeMap.getOrDefault(actual.getLayout(), true)) {
                 continue;
             }
@@ -112,18 +112,23 @@ public class AStar {
 
             List<State> sucs = sucessores(actual);
             generatedNodes += sucs.size();
-            System.out.println(generatedNodes);
+//            System.out.println(generatedNodes);
 
 
             for (State successor : sucs) {
-                if (successor.getF(this.objective) > currentBestCost * 1.1) { // Allow a small margin
-                    continue; // Skip this state if its cost exceeds the current best by 10%
-                }
+                // Verifica se o número de stacks do sucessor é maior que o objetivo
+//                if (numStacksSuccessor > numStacksObjective) {
+//                    continue; // Ignora estados com mais stacks que a configuração objetivo
+//                }
 
-                // Update the current best cost if this state reaches the goal
-                if (successor.getLayout().isGoal(this.objective)) {
-                    currentBestCost = Math.min(currentBestCost, successor.getG());
-                }
+                // Verifica se o valor de getF() é maior que o do estado anterior
+                System.out.println("pai " + actual.getLayout().computeHeuristic(this.objective));
+                System.out.println("filho" + successor.getLayout().computeHeuristic(this.objective));
+//                System.out.println(successor);
+//                if (successor.getLayout().computeHeuristic(this.objective) > actual.getLayout().computeHeuristic(this.objective)) {
+//                    continue; // Ignora estados onde o getF() é maior do que o do melhor custo até agora
+//                }
+// Verifica se o valor de getF() é maior que o do estado anterior
 
                 if (!fechados.containsKey(successor.getLayout()) && !abertosMap.containsKey(successor.getLayout())) {
                     if (successor.getLayout().equals(this.objective)) {
