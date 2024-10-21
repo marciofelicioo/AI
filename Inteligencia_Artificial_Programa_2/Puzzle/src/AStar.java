@@ -1,10 +1,11 @@
 import java.util.*;
 public class AStar {
     protected Queue<State> abertos;
-    private Map<Ilayout,State> fechados;
+    private Map<Ilayout, State> abertosMap;
+    private Map<Ilayout, Boolean> activeMap;
+    private Map<Ilayout, State> fechados;
     private State actual;
     private Ilayout objective;
-
     static int generatedNodes = 0;
     static int expandedNodes = 0;
 
@@ -12,6 +13,7 @@ public class AStar {
         private Ilayout layout;
         private State father;
         private double g;
+        Map<Ilayout, Double> heuristicCache = new HashMap<>();
 
         public State(Ilayout l, State n) {
             this.layout = l;
@@ -24,7 +26,7 @@ public class AStar {
 
         // F(n) = G(n) + H(n)
         public double getF(Ilayout objective) {
-            return this.g + this.layout.computeHeuristic(objective);
+            return this.g + computeHeuristic(this.layout,objective);
         }
 
         public double getG() {
@@ -44,6 +46,14 @@ public class AStar {
             return toString().hashCode();
         }
 
+        public double computeHeuristic(Ilayout layout,Ilayout goal) {
+            if (heuristicCache.containsKey(layout)) {
+                return heuristicCache.get(layout);
+            }
+            double heuristicValue = layout.computeHeuristic(goal);
+            heuristicCache.put(layout, heuristicValue);
+            return heuristicValue;
+        }
         @Override
         public boolean equals(Object obj) {
             if (obj == null) return false;
@@ -58,7 +68,7 @@ public class AStar {
         }
     }
 
-    final private List<State> sucessores(State n) {
+    final private List<State> sucessores(State n, int maxSucessores) {
         List<State> sucs = new ArrayList<>();
         List<Ilayout> children = n.getLayout().children();
         for (Ilayout e : children) {
@@ -66,11 +76,11 @@ public class AStar {
                 State nn = new State(e, n);
                 sucs.add(nn);
             }
+            if (sucs.size() >= maxSucessores) break;
         }
+//        sucs.sort(Comparator.comparingDouble(s -> s.getF(this.objective)));
         return sucs;
     }
-
-
 
     /**
      * Método que implementa o A*.
@@ -81,28 +91,31 @@ public class AStar {
      */
     public State solve(Ilayout initial, Ilayout goal) {
         this.objective = goal;
+        abertos = new PriorityQueue<>(100000, Comparator.comparingDouble((State s) -> s.getF(this.objective))
+//                .thenComparing(s -> -(s.getG()))
+//                .thenComparing(s -> -(s.getLayout().children().size()))
+        );
 
-        abertos = new PriorityQueue<>(100000, Comparator.comparingDouble(s -> s.getF(this.objective)));
-        Map<Ilayout, State> abertosMap = new HashMap<>();
-        Map<Ilayout, Boolean> activeMap = new HashMap<>();
+        abertosMap = new HashMap<>();
+        activeMap = new HashMap<>();
         fechados = new HashMap<>();
-
-
         State initialState = new State(initial, null);
         abertos.add(initialState);
         abertosMap.put(initial, initialState);
         activeMap.put(initial, true);
-        System.out.println(initial);
-        while (!abertos.isEmpty()) {
 
+        while (!abertos.isEmpty()) {
             actual = abertos.poll();
-//            System.out.println(actual);
             if (!activeMap.getOrDefault(actual.getLayout(), true)) {
                 continue;
             }
             abertosMap.remove(actual.getLayout());
             activeMap.remove(actual.getLayout());
             expandedNodes++;
+            System.out.println("valor de custo acumulado do atual - " + actual.getG());
+            System.out.println("valor heuristico do atual - " + actual.getLayout().computeHeuristic(this.objective));
+            System.out.println("valor de f(n) do atual - " + actual.getF(this.objective));
+            System.out.println("estado correspondente ao valor heuristico do atual" + actual);
 
             if (actual.getLayout().isGoal(objective)) {
                 return actual;
@@ -110,30 +123,11 @@ public class AStar {
 
             fechados.put(actual.getLayout(), actual);
 
-            List<State> sucs = sucessores(actual);
+            List<State> sucs = sucessores(actual, 100000);
             generatedNodes += sucs.size();
-//            System.out.println(generatedNodes);
-
-
             for (State successor : sucs) {
-                // Verifica se o número de stacks do sucessor é maior que o objetivo
-//                if (numStacksSuccessor > numStacksObjective) {
-//                    continue; // Ignora estados com mais stacks que a configuração objetivo
-//                }
-
-                // Verifica se o valor de getF() é maior que o do estado anterior
-                System.out.println("pai " + actual.getLayout().computeHeuristic(this.objective));
-                System.out.println("filho" + successor.getLayout().computeHeuristic(this.objective));
-//                System.out.println(successor);
-//                if (successor.getLayout().computeHeuristic(this.objective) > actual.getLayout().computeHeuristic(this.objective)) {
-//                    continue; // Ignora estados onde o getF() é maior do que o do melhor custo até agora
-//                }
-// Verifica se o valor de getF() é maior que o do estado anterior
 
                 if (!fechados.containsKey(successor.getLayout()) && !abertosMap.containsKey(successor.getLayout())) {
-                    if (successor.getLayout().equals(this.objective)) {
-                        return successor;
-                    }
                     abertos.add(successor);
                     abertosMap.put(successor.getLayout(), successor);
                     activeMap.put(successor.getLayout(), true);
@@ -145,41 +139,34 @@ public class AStar {
                         abertosMap.put(successor.getLayout(), successor);
                         activeMap.put(successor.getLayout(), true);
                     }
-//                    if (successor.getG() < openState.getG()) {
-//                        // Atualiza o estado na fila de abertos com o novo caminho de menor custo
-//                        activeMap.put(openState.getLayout(), false);
-//                        abertos.add(successor);
-//                        abertosMap.put(successor.getLayout(), successor);
-//                        activeMap.put(successor.getLayout(), true);
-//                    }
+
                 } else if (fechados.containsKey(successor.getLayout())) {
                     State closedState = fechados.get(successor.getLayout());
-                    if (successor.getF(this.objective) < closedState.getF(this.objective) - 1) { // Reabertura seletiva
+                    if (successor.getF(this.objective) < closedState.getF(this.objective) - 0.5) { // Valor reduzido para reabertura seletiva mais restrita
                         fechados.remove(successor.getLayout());
                         abertos.add(successor);
                         abertosMap.put(successor.getLayout(), successor);
                         activeMap.put(successor.getLayout(), true);
                     }
-//                    if (successor.getG() < closedState.getG()) {
-//                        // Reabre o estado fechado com o novo caminho mais barato
-//                        fechados.remove(successor.getLayout());
-//                        abertos.add(successor);
-//                        abertosMap.put(successor.getLayout(), successor);
-//                        activeMap.put(successor.getLayout(), true);
-//                    }
                 }
             }
         }
-
-        return null;
+        return null;  // Retorna null se não encontrar o objetivo
+    }
+    private void cleanUpClosedSet(Map<Ilayout, State> fechados) {
+        List<Map.Entry<Ilayout, State>> entries = new ArrayList<>(fechados.entrySet());
+        entries.sort(Comparator.comparing(e -> e.getValue().getF(this.objective)));
+        int toRemove = (int) (fechados.size() * 0.2);  // Remove apenas os 20% piores
+        for (int i = 0; i < toRemove; i++) {
+            fechados.remove(entries.get(i).getKey());
+        }
     }
 
-
-
-
-
-
-
+    private void cleanUpOpenSet(Queue<State> abertos) {
+        // Remove estados cuja heurística esteja significativamente acima da média
+        double averageF = abertos.stream().mapToDouble(s -> s.getF(this.objective)).average().orElse(Double.MAX_VALUE);
+        abertos.removeIf(state -> state.getF(this.objective) > averageF * 1.2);  // Remove os piores 50%
+    }
     public static int getGeneratedNodes() {
         return generatedNodes;
     }
@@ -187,4 +174,5 @@ public class AStar {
     public static int getExpandedNodes() {
         return expandedNodes;
     }
+
 }

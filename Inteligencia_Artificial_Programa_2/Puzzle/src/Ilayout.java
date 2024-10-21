@@ -17,4 +17,6 @@ public interface Ilayout {
      * @return the minimun estimated cost from current configuration to goal
      */
     double computeHeuristic(Ilayout goalLayout);
+
+
 }

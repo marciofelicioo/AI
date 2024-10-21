@@ -21,6 +21,7 @@ public class Platform implements Ilayout, Cloneable {
     private List<Stack<Container>> stacks;
     private double cost;
     private Map<Character, int[]> cachedGoalPositions;
+    private static double maxContainerCost = -1;
      /**
      * Construtor por omissão
      */
@@ -51,7 +52,6 @@ public class Platform implements Ilayout, Cloneable {
             }
             this.stacks.add(newStack);
         }
-
         this.cost = other.getK();
     }
 
@@ -227,7 +227,7 @@ public class Platform implements Ilayout, Cloneable {
                     return false;
                 }
             }
-        }
+        }   
         return true;
     }
 
@@ -239,10 +239,8 @@ public class Platform implements Ilayout, Cloneable {
      * @return lista de configurações ordenadas
      */
     private void getSortedStacks() {
-        getStacks().sort(Comparator.comparing(stack -> stack.firstElement().getId()));  // Ordena diretamente
+        getStacks().sort(Platform.compareChars);  // Ordena diretamente
     }
-
-
 
 
     public double computeHeuristic(Ilayout goalLayout) {
@@ -267,16 +265,18 @@ public class Platform implements Ilayout, Cloneable {
                 Container currentContainer = currentStack.get(j);
                 int[] goalPosition = cachedGoalPositions.get(currentContainer.getId());
 
-                // Ignora se já está na pilha e posição corretas
                 if (goalPosition != null && !(j == 0 && goalPosition[1] == 0) && !(j > 0 && goalPosition[1] == j)) {
                     totalEstimatedCost += currentContainer.getCost();
                 }
+//                if (j == 0 && goalPosition[1] == 0 && currentStack.size() != goal.stacks.get(goalPosition[0]).size()) {  // Ajuste condicional
+//                        totalEstimatedCost += currentContainer.getCost();
+//
+//                }
             }
         }
 
         return totalEstimatedCost;
     }
-
 
     /**
      * move o container de uma stack e coloca noutra stack completamente nova
