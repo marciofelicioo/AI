@@ -92,8 +92,10 @@ public class BestFirst {
                 return reconstructPath(this.actual);
             }
 
-            List<State> sucs = sucessores(this.actual);
+            abertosSet.remove(this.actual.getLayout());
+
             this.fechados.add(this.actual.getLayout());
+            List<State> sucs = sucessores(this.actual);
 
             for (State sucessor : sucs) {
                 if (!fechados.contains(sucessor.getLayout()) && !abertosSet.contains(sucessor.getLayout())) {
@@ -103,6 +105,26 @@ public class BestFirst {
                     this.abertos.add(sucessor);
                     abertosSet.add(sucessor.getLayout());
                 }
+//                else if (abertosSet.contains(sucessor.getLayout())) {
+//                    for (State existingNode : this.abertos) {
+//                        if (existingNode.getLayout().equals(sucessor.getLayout()) &&
+//                                sucessor.getG() < existingNode.getG()) {
+//                            this.abertos.remove(existingNode);
+//                            this.abertos.add(sucessor);
+//                            break;
+//                        }
+//                    }
+//                }
+//                else if (fechados.contains(sucessor.getLayout())) {
+//                    for (Ilayout closedNode : this.fechados) {
+//                        if (closedNode.equals(sucessor) && sucessor.getG() < closedNode.getK()) {
+//                            fechados.remove(closedNode);
+//                            this.abertos.add(sucessor);
+//                            abertosSet.add(sucessor.getLayout());
+//                            break;
+//                        }
+//                    }
+//                }
             }
         }
         return null;
