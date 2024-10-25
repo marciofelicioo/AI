@@ -60,7 +60,7 @@ public class ContainersPlatform implements Ilayout, Cloneable {
     @Override
     @SuppressWarnings("unchecked")
     public ContainersPlatform clone() {
-        ContainersPlatform copy = new ContainersPlatform();
+        ContainersPlatform copy = new   ContainersPlatform();
         copy.stacks = new ArrayList<>(stacks.size());
         for (Stack<Contentor> stack : stacks) {
             copy.stacks.add((Stack<Contentor>) stack.clone());
