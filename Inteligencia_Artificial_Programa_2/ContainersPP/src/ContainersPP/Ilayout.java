@@ -1,4 +1,5 @@
 package ContainersPP;
+import java.util.Deque;
 import java.util.List;
 /**
  * Interface ContainersPP.Ilayout: Esta interface define as assinaturas dos métodos

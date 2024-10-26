@@ -7,8 +7,8 @@ import java.util.*;
 
 /**
  * Classe ContainersPP.Platform: Esta classe contém construtores que criam objetos Platform
- * e o seu principal objetivo é criar sucessores de uma certa configuração e
- * calcular a heuristica para poder auxiliar o método solve da classe AStar (A* algorithm)
+ * e o seu principal objetivo é criar sucessores de uma certa configuração
+ *
  * @author Márcio Felício, Maria Anjos, Miguel Rosa
  * @version 1.0 19/10/2024
  * @inv Cada Contentor tem de ter um custo associado caso seja configuração inicial
@@ -23,11 +23,6 @@ public class Platform implements Ilayout, Cloneable {
         if (s2.isEmpty()) return 1;
         return String.valueOf(s1.peekFirst().getId()).compareTo(String.valueOf(s2.peekFirst().getId()));
     };
-
-    /**
-     * Cache estático para armazenar cacheGoalPoisitons para diferentes goalLayouts.
-     */
-    private static final Map<Ilayout, HashMap<Character, List<Container>>> cacheGoalPositions = new HashMap<>();
 
     /**
      * Estrutura da classe Platform
@@ -283,86 +278,20 @@ public class Platform implements Ilayout, Cloneable {
     public double getK() {
         return this.cost;
     }
+
     /**
+     * Método de cálculo heurístico para estimar o custo da configuração atual até a configuração objetivo.
+     * Esta implementação atual retorna 0 e serve como um placeholder.
+     * Para uma implementação completa e funcional, consulte o método `computeHeuristic` na classe `HeuristicStrategy`.
      *
-     * Este método calcula o valor da heurística (h(n)) para a configuração atual em relação à configuração
-     * objetivo, representada por `goalLayout`. A heurística serve para estimar o custo mínimo restante
-     * para alcançar a solução final no algoritmo A*.
-     *
-     * @param goalLayout Representa a configuração final desejada.
-     * @return O valor estimado da heurística, que reflete o custo estimado necessário para transformar a
-     *         configuração atual na configuração objetivo.
+     * @param goal A configuração objetivo que o algoritmo busca alcançar.
      */
     @Override
-    public double computeHeuristic(Ilayout goalLayout) {
-        double h = 0;
-
-        HashMap<Character, List<Container>> goalBaseMap = cacheGoalPositions(goalLayout);
-
-        for (Deque<Container> currentStack : this.stacks) {
-            if (currentStack.isEmpty()) continue;
-
-            List<Container> currentStackList = new ArrayList<>(currentStack);
-            char currentBaseId = currentStackList.getFirst().getId();
-            List<Container> goalStack = goalBaseMap.get(currentBaseId);
-
-            if (goalStack != null) {
-                int minHeight = Math.min(currentStackList.size(), goalStack.size());
-                boolean mismatchFound = false;
-                int firstMismatchIndex = -1;
-
-                for (int j = 0; j < minHeight; j++) {
-                    if (currentStackList.get(j).getId() != goalStack.get(j).getId()) {
-                        mismatchFound = true;
-                        firstMismatchIndex = j;
-                        break;
-                    }
-                }
-                if (mismatchFound) {
-                    for (int k = firstMismatchIndex; k < currentStackList.size(); k++) {
-                        h += currentStackList.get(k).getCost();
-                    }
-                }
-                if (currentStackList.size() > goalStack.size()) {
-                    for (int k = goalStack.size(); k < currentStackList.size(); k++) {
-                        h += currentStackList.get(k).getCost();
-                    }
-                }
-            } else {
-                for (Container container : currentStack) {
-                    h += container.getCost();
-                }
-            }
-        }
-
-        return h;
+    public double computeHeuristic(Ilayout goal) {
+        return 0;
     }
-    /**
-     * Recupera o cacheGoalPositions para um dado goalLayout utilizando cache.
-     * Se o cacheGoalPositions já foi calculado para este goalLayout, retorna do cache.
-     * Caso contrário, calcula, armazena no cache e retorna.
-     *
-     * @param goalLayout O layout objetivo para o qual calcular o goalBaseMap.
-     * @return HashMap<Character, List<Container>> mapeamento das bases para suas respectivas pilhas.
-     */
-    private HashMap<Character, List<Container>> cacheGoalPositions(Ilayout goalLayout) {
 
-        if (cacheGoalPositions.containsKey(goalLayout)) {
-            return cacheGoalPositions.get(goalLayout);
-        }
 
-        HashMap<Character, List<Container>> goalBaseMap = new HashMap<>();
-        for (Deque<Container> goalStack : ((Platform) goalLayout).getStacks()) {
-            if (!goalStack.isEmpty()) {
-                List<Container> goalStackList = new ArrayList<>(goalStack);
-                char goalBaseId = goalStackList.getFirst().getId();
-                goalBaseMap.put(goalBaseId, goalStackList);
-            }
-        }
-
-        cacheGoalPositions.put(goalLayout, goalBaseMap);
-        return goalBaseMap;
-    }
     /**
      * Ordena as pilhas segundo o primeiro character do primeiro contentor
      */

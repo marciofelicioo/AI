@@ -98,7 +98,7 @@ public class PlatformTest {
      */
     @Test
     public void testChildren() throws PlatformException, ContainersException {
-        Platform initial = new Platform("AB CD",true);
+        Platform initial = new Platform("A1B1 C1D1",true);
         List<Ilayout> children = initial.children();
 
 
@@ -115,12 +115,12 @@ public class PlatformTest {
     @Test
     public void testComputeHeuristic() throws PlatformException, ContainersException {
         Platform initial = new Platform("A2B3 C4D5",true);
-        Platform goal = new Platform("AC BD",true);
-
-        double heuristicValue = initial.computeHeuristic(goal);
+        Platform goal = new Platform("AC BD",false);
+        HeuristicStrategy heuristic = new HeuristicStrategy(initial.getStacks());
+        double heuristicValue = heuristic.computeHeuristic(goal);
         assertTrue("Heuristic value should be positive", heuristicValue > 0);
 
-        Platform sameAsGoal = new Platform("AC BD",true);
+        Platform sameAsGoal = new Platform("AC BD",false);
         double zeroHeuristic = sameAsGoal.computeHeuristic(goal);
         assertEquals("Heuristic should be zero when at goal", 0.0, zeroHeuristic, 0.001);
     }

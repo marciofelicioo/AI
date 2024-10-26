@@ -5,6 +5,7 @@ import Exceptions.ContainersException;
  * Classe ContainersPP.Container: Esta classe contém construtores que criam objetos Container
  * e o seu principal objetivo é armazenar os valores primitivos associados aos contentores
  * (character e custo de movimento)
+ *
  * @author Márcio Felício, Maria Anjos, Miguel Rosa
  * @version 1.0 19/10/2024
  * @inv Cada Contentor tem de ter um custo associado acima de 0 valores
@@ -44,7 +45,7 @@ public final class Container {
     }
 
     /**
-     * Código único atribuído a cada instância de contentor criada
+     * Código único atribuído a cada instância de Container criada
      */
     @Override
     public int hashCode() {
@@ -52,7 +53,7 @@ public final class Container {
     }
 
     /**
-     * Método que compara se duas instâncias de contentores são iguais
+     * Método que compara se duas instâncias de Containers são iguais
      * @param obj representa o objeto que será comparado com o recetor
      * @return true caso sejam, false caso contrário
      */
@@ -65,7 +66,7 @@ public final class Container {
     }
 
     /**
-     * @return clone de uma instância contentor
+     * @return clone de uma instância Container
      */
     @Override
     public Container clone() {

@@ -4,6 +4,7 @@ import java.util.*;
  * Classe AStar: Implementa o algoritmo de busca A* (A* Search Algorithm) para encontrar o caminho
  * com menor custo acumulado em um espaço de estados definido. A classe armazena os estados gerados
  * e expandidos, além de calcular a função F(n) = G(n) + H(n) para o processo de busca.
+ *
  * @author Márcio Felício, Maria Anjos, Miguel Rosa
  * @version 1.0 21/10/2024
  * @inv
@@ -22,7 +23,7 @@ public class AStar {
      * Estrutra da classe AStar
      */
     protected Queue<State> abertos;
-    private Map<Ilayout,State> abertosMap;
+    private Map<Ilayout, State> abertosMap;
     private Set<Ilayout> fechados;
     private State actual;
     private Ilayout objective;
@@ -48,6 +49,7 @@ public class AStar {
 
         /**
          * Construtor de inicialização da classe State
+         *
          * @param l representa a configuração usada pra criar um estado
          * @param n representa o estado pai
          */
@@ -98,10 +100,12 @@ public class AStar {
          * Usa cache para evitar recalcular a heurística para o mesmo estado.
          */
         public double computeHeuristic(Ilayout layout, Ilayout goal) {
+            Platform current = (Platform)  layout;
+            HeuristicStrategy heuristic = new HeuristicStrategy(current.getStacks());
             if (heuristicCache.containsKey(layout)) {
                 return heuristicCache.get(layout);
             }
-            double heuristicValue = layout.computeHeuristic(goal);
+            double heuristicValue = heuristic.computeHeuristic(goal);
             heuristicCache.put(layout, heuristicValue);
             return heuristicValue;
         }
@@ -113,8 +117,10 @@ public class AStar {
         public int hashCode() {
             return toString().hashCode();
         }
+
         /**
          * método que compara se duas instâncias de State são iguais
+         *
          * @param obj representa o objeto que será comparado com o recetor
          * @return true caso sejam, false caso contrário
          */
@@ -125,6 +131,7 @@ public class AStar {
             State other = (State) obj;
             return layout.equals(other.layout);
         }
+
         /**
          * @return representação textual da classe State
          */
@@ -157,13 +164,11 @@ public class AStar {
     /**
      * getters da classe AStar
      */
-    public static int getGeneratedNodes()
-    {
+    public static int getGeneratedNodes() {
         return generatedNodes;
     }
 
-    public static int getExpandedNodes()
-    {
+    public static int getExpandedNodes() {
         return expandedNodes;
     }
 
@@ -177,30 +182,53 @@ public class AStar {
     public State solve(Ilayout initial, Ilayout goal) {
         this.objective = goal;
         abertos = new PriorityQueue<>(10, Comparator.comparingDouble((State s) -> s.getF(this.objective))
-                .thenComparing(s -> s.computeHeuristic(s.getLayout(), objective))
-        );
+                .thenComparing(s -> s.computeHeuristic(s.getLayout(), objective)));
+        fechados = new HashSet<>();
+
+        State initialState = new State(initial, null);
+
+        abertos.add(initialState);
 
         abertosMap = new HashMap<>();
-        fechados = new HashSet<>();
-        State initialState = new State(initial, null);
-        abertos.add(initialState);
         abertosMap.put(initial, initialState);
+
+        List<State> sucs;
 
         while (!abertos.isEmpty()) {
             actual = abertos.poll();
             expandedNodes++;
+
             if (actual.getLayout().isGoal(objective)) {
                 return actual;
             }
+
             abertosMap.remove(actual.getLayout());
             fechados.add(actual.getLayout());
 
-            List<State> sucs = sucessores(actual);
+            sucs = sucessores(actual);
+
             for (State successor : sucs) {
                 if (!fechados.contains(successor.getLayout()) && !abertosMap.containsKey(successor.getLayout())) {
                     abertos.add(successor);
                     abertosMap.put(successor.getLayout(), successor);
                 }
+                /**
+                 * Eficiência reduzida ao usar estas condições
+                 */
+//                else if (abertosMap.containsKey(successor.getLayout())) {
+//                    State existingNode = abertosMap.get(successor.getLayout());
+//                    if (successor.getF(objective) < existingNode.getF(objective)) {
+//                        abertos.remove(existingNode);
+//                        abertos.add(successor);
+//                        abertosMap.put(successor.getLayout(), successor);
+//                    }
+//                } else if (fechados.contains(successor.getLayout())) {
+//                    if (successor.getF(objective) < abertosMap.get(successor.getLayout()).getF(objective)) {
+//                        fechados.remove(successor.getLayout());
+//                        abertos.add(successor);
+//                        abertosMap.put(successor.getLayout(), successor);
+//                    }
+//                }
             }
         }
         return null;
