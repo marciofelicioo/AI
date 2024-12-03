@@ -1,5 +1,5 @@
 # AI
-Mechanism of making machines complete tasks of which intelligence is a must.
+The mechanism of making machines complete tasks that require intelligence.
 
 1-Tutorial(complete and succefully accepted by Mooshak)(BFS)
 
